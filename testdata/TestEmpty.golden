@@ -1,0 +1,6 @@
+<SOAP-ENV:Header xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header soapAction="this is a soap action string">
+        <testElem>Hello</testElem>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body></SOAP-ENV:Body>
+</SOAP-ENV:Header>
