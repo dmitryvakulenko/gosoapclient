@@ -35,8 +35,8 @@ func (c *Client) call(soapAction string, body interface{}) []byte {
 	soap.Body.Content = body
 
 	namespaces := make(map[string]string)
-	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Header.Content))
-	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Body.Content))
+	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(reflect.TypeOf(soap.Header.Content)))
+	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(reflect.TypeOf(soap.Body.Content)))
 	for alias, ns := range namespaces {
 		soap.Namespaces = append(soap.Namespaces, xml.Attr{
 			Name: xml.Name{Local: "xmlns:" + alias},
@@ -52,13 +52,23 @@ func (c *Client) call(soapAction string, body interface{}) []byte {
 	return []byte{}
 }
 
-func (c *Client) collectNamespaces(in interface{}) map[string]string {
+func (c *Client) collectNamespaces(inType reflect.Type) map[string]string {
 	res := make(map[string]string)
-	inType := reflect.TypeOf(in)
 
 	if ns, ok := c.typesNamespaces[inType.Name()]; ok {
 		nsAlias := c.namespacesAlias[ns]
 		res[nsAlias] = ns
+	}
+
+	fieldsNum := inType.NumField()
+	for i := 0; i < fieldsNum; i++ {
+		field := inType.Field(i)
+		fieldType := field.Type
+		if fieldType.Kind() == reflect.Struct {
+			res = mergeNamespaces(res, c.collectNamespaces(fieldType))
+		} else if fieldType.Kind() == reflect.Array {
+			res = mergeNamespaces(res, c.collectNamespaces(field.Type.Elem()))
+		}
 	}
 
 	return res

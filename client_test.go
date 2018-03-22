@@ -45,7 +45,7 @@ type Session struct {
 	XMLName	string `xml:"ns0:Session"`
 	SessionId             string `xml:"ns0:SessionId,omitempty"`
 	SequenceNumber        string `xml:"ns0:SequenceNumber,omitempty"`
-	SecurityToken         string `xml:"ns0:SecurityToken,omitempty"`
+	SecurityToken         []string `xml:"ns0:SecurityToken,omitempty"`
 	TransactionStatusCode string `xml:"TransactionStatusCode,attr,omitempty"`
 }
 func TestNamespaces(t *testing.T) {
@@ -59,7 +59,7 @@ func TestNamespaces(t *testing.T) {
 	session := Session{
 		SessionId: "a",
 		SequenceNumber: "b",
-		SecurityToken: "c",
+		SecurityToken: []string{"c"},
 		TransactionStatusCode: "d"}
 	c.DoSomething(session)
 
