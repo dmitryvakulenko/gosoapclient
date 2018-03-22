@@ -1,0 +1,12 @@
+<SOAP-ENV:Header xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns0="http://aaa.aaa.aaa">
+    <SOAP-ENV:Header>
+        <testElem soapAction="this is a soap action string"></testElem>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns0:Session TransactionStatusCode="d">
+            <ns0:SessionId>a</ns0:SessionId>
+            <ns0:SequenceNumber>b</ns0:SequenceNumber>
+            <ns0:SecurityToken>c</ns0:SecurityToken>
+        </ns0:Session>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Header>

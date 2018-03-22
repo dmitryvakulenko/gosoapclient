@@ -7,9 +7,17 @@ func NewSoap() *Envelope {
 }
 
 type Envelope struct {
-	XMLName       xml.Name    `xml:"SOAP-ENV:Header"`
-	SoapNamespace string      `xml:"xmlns:SOAP-ENV,attr"`
-	Namespaces    []xml.Attr	`xml:",attr"`
-	Header        interface{} `xml:"SOAP-ENV:Header"`
-	Body          interface{} `xml:"SOAP-ENV:Body"`
+	XMLName       xml.Name   `xml:"SOAP-ENV:Header"`
+	SoapNamespace string     `xml:"xmlns:SOAP-ENV,attr"`
+	Namespaces    []xml.Attr `xml:",attr"`
+	Header        Header     `xml:"SOAP-ENV:Header"`
+	Body          Body       `xml:"SOAP-ENV:Body"`
+}
+
+type Header struct {
+	Content interface{} `xml:",omitempty"`
+}
+
+type Body struct {
+	Content interface{} `xml:",omitempty"`
 }
