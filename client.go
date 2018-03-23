@@ -16,27 +16,25 @@ type Client struct {
 	url             string
 	typesNamespaces map[string]string
 	namespacesAlias map[string]string
-	createHeader    func(string) interface{}
 	poster          Poster
 }
 
-func NewClient(url string, headerCreator func(string) interface{}, typesNs, nsAlias map[string]string, poster Poster) *Client {
+func NewClient(url string, typesNs, nsAlias map[string]string, poster Poster) *Client {
 	return &Client{
 		url:             url,
 		typesNamespaces: typesNs,
 		namespacesAlias: nsAlias,
-		createHeader:    headerCreator,
 		poster:          poster}
 }
 
-func (c *Client) call(soapAction string, body interface{}) []byte {
+func (c *Client) Call(soapAction string, header interface{}, body interface{}) []byte {
 	soap := NewSoap()
-	soap.Header.Content = c.createHeader(soapAction)
+	soap.Header.Content = header
 	soap.Body.Content = body
 
 	namespaces := make(map[string]string)
-	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(reflect.TypeOf(soap.Header.Content)))
-	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(reflect.TypeOf(soap.Body.Content)))
+	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Header.Content))
+	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Body.Content))
 	for alias, ns := range namespaces {
 		soap.Namespaces = append(soap.Namespaces, xml.Attr{
 			Name: xml.Name{Local: "xmlns:" + alias},
@@ -45,14 +43,19 @@ func (c *Client) call(soapAction string, body interface{}) []byte {
 
 	request, err := xml.MarshalIndent(soap, "", "    ")
 	if err != nil {
-		panic("Wrong xml")
+		panic(err)
 	}
-	c.poster.Post(c.url, "text\\xml", bytes.NewReader(request))
+	response, _ := c.poster.Post(c.url, "text\\xml", bytes.NewReader(request))
+	defer response.Body.Close()
 
-	return []byte{}
+	res := make([]byte, response.ContentLength)
+	response.Body.Read(res)
+
+	return res
 }
 
-func (c *Client) collectNamespaces(inType reflect.Type) map[string]string {
+func (c *Client) collectNamespaces(in interface{}) map[string]string {
+	inType := reflect.TypeOf(in)
 	res := make(map[string]string)
 
 	if ns, ok := c.typesNamespaces[inType.Name()]; ok {
@@ -60,14 +63,15 @@ func (c *Client) collectNamespaces(inType reflect.Type) map[string]string {
 		res[nsAlias] = ns
 	}
 
-	fieldsNum := inType.NumField()
-	for i := 0; i < fieldsNum; i++ {
-		field := inType.Field(i)
-		fieldType := field.Type
-		if fieldType.Kind() == reflect.Struct {
-			res = mergeNamespaces(res, c.collectNamespaces(fieldType))
-		} else if fieldType.Kind() == reflect.Array {
-			res = mergeNamespaces(res, c.collectNamespaces(field.Type.Elem()))
+	if inType.Kind() == reflect.Struct {
+		fieldsNum := inType.NumField()
+		for i := 0; i < fieldsNum; i++ {
+			res = mergeNamespaces(res, c.collectNamespaces(inType.Field(i).Type))
+		}
+	} else if inType.Kind() == reflect.Slice {
+		val := in.([]interface{})
+		for _, v := range val {
+			res = mergeNamespaces(res, c.collectNamespaces(v))
 		}
 	}
 
