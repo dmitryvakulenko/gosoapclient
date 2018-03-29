@@ -2,7 +2,7 @@ package gosoapclient
 
 import "encoding/xml"
 
-func NewSoap() *Envelope {
+func newSoap() *Envelope {
 	return &Envelope{SoapNamespace: "http://schemas.xmlsoap.org/soap/envelope/"}
 }
 

@@ -6,6 +6,10 @@ import (
 	"encoding/xml"
 	"bytes"
 	"reflect"
+	"crypto/tls"
+	//"time"
+	//"net"
+	//"golang.org/x/net/context"
 )
 
 type Poster interface {
@@ -17,51 +21,56 @@ type Client struct {
 	typesNamespaces map[string]string
 	namespacesAlias map[string]string
 	poster          Poster
+	client          *http.Client
 }
 
-func NewClient(url string, typesNs, nsAlias map[string]string, poster Poster) *Client {
-	return &Client{
+func NewClient(url string, typesNamespaces map[string]string, namespacesAlias map[string]string, poster Poster) Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
+	return Client{
 		url:             url,
-		typesNamespaces: typesNs,
-		namespacesAlias: nsAlias,
-		poster:          poster}
+		typesNamespaces: typesNamespaces,
+		namespacesAlias: namespacesAlias,
+		poster:          poster,
+		client:          &http.Client{Transport: tr},
+	}
 }
 
 func (c *Client) Call(soapAction string, header interface{}, body interface{}) []byte {
-	soap := NewSoap()
+	soap := newSoap()
 	soap.Header = header
 	soap.Body.Content = body
 
 	namespaces := make(map[string]string)
 	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Header))
-	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Body))
+	namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Body.Content))
 	for alias, ns := range namespaces {
 		soap.Namespaces = append(soap.Namespaces, xml.Attr{
-			Name: xml.Name{Local: "xmlns:" + alias},
+			Name:  xml.Name{Local: "xmlns:" + alias},
 			Value: ns})
 	}
 
-	request, err := xml.MarshalIndent(soap, "", "    ")
+	requestBody, err := xml.MarshalIndent(soap, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	response, _ := c.poster.Post(c.url, "text\\xml", bytes.NewReader(request))
+
+	requestBody = append([]byte(xml.Header), requestBody...)
+
+	request, _ := http.NewRequest("POST", c.url, bytes.NewReader(requestBody))
+	request.Header.Add("Content-Type", "text/xml; charset=\"utf-8\"")
+	request.Header.Add("SOAPAction", soapAction)
+
+	response, _ := c.client.Do(request)
 	defer response.Body.Close()
 
-	return readResponse(response)
-}
-
-func readResponse(response *http.Response) []byte {
-	res := bytes.NewBuffer(make([]byte, 0))
-	buf := make([]byte, 1024)
-	var err error
-	var readed int
-	for err != io.EOF {
-		readed, err = response.Body.Read(buf)
-		res.Write(buf[0:readed])
-	}
-
-	return res.Bytes()
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+	return buf.Bytes()
 }
 
 func (c *Client) collectNamespaces(in interface{}) map[string]string {
@@ -81,10 +90,16 @@ func (c *Client) collectNamespaces(in interface{}) map[string]string {
 			res = mergeNamespaces(res, c.collectNamespaces(val.Interface()))
 		}
 	} else if inType.Kind() == reflect.Slice {
-		val := in.([]interface{})
+		val, ok := in.([]interface{})
+		if !ok {
+			return res
+		}
 		for _, v := range val {
 			res = mergeNamespaces(res, c.collectNamespaces(v))
 		}
+	} else if inType.Kind() == reflect.Ptr && !inType.IsNil() {
+		ptr := inType.Elem().Interface()
+		res = mergeNamespaces(res, c.collectNamespaces(ptr))
 	}
 
 	return res
