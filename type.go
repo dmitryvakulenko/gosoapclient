@@ -2,7 +2,7 @@ package gosoapclient
 
 import "encoding/xml"
 
-func newSoap() *Envelope {
+func NewSoapEnvelope() *Envelope {
 	return &Envelope{SoapNamespace: "http://schemas.xmlsoap.org/soap/envelope/"}
 }
 
@@ -11,9 +11,19 @@ type Envelope struct {
 	SoapNamespace string      `xml:"xmlns:SOAP-ENV,attr"`
 	Namespaces    []xml.Attr  `xml:",attr"`
 	Header        interface{} `xml:"SOAP-ENV:Header"`
-	Body          Body `xml:"SOAP-ENV:Body"`
+	Body          Content     `xml:"SOAP-ENV:Body"`
 }
 
-type Body struct {
-	Content interface{}
+type Content struct {
+	Value []byte `xml:",innerxml"`
+}
+
+type Response struct {
+	XMLName   string `xml:"Envelope"`
+	SessionId string `xml:"Header>Session>SessionId"`
+	Body      RespBody `xml:"Body"`
+}
+
+type RespBody struct {
+	Response []byte `xml:",innerxml"`
 }
