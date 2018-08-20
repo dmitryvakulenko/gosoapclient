@@ -30,3 +30,7 @@ type soapResponse struct {
 type respBody struct {
 	Response []byte `xml:",innerxml"`
 }
+
+func nilResponse() *soapResponse {
+    return &soapResponse{}
+}
