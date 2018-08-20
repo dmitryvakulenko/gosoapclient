@@ -21,7 +21,7 @@ type content struct {
 	Value []byte `xml:",innerxml"`
 }
 
-type response struct {
+type soapResponse struct {
 	XMLName   string   `xml:"Envelope"`
 	SessionId string   `xml:"Header>Session>SessionId"`
 	Body      respBody `xml:"Body"`

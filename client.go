@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"bytes"
 	"crypto/tls"
+    "log"
 )
 
 type Poster interface {
@@ -32,7 +33,7 @@ func NewClient(url string, poster Poster) Client {
 	}
 }
 
-func (c *Client) Call(soapAction string, header, body interface{}) []byte {
+func (c *Client) Call(soapAction string, header, body interface{}) *soapResponse {
 	soap := newSoapEnvelope()
 
 	soap.Header = header
@@ -49,11 +50,17 @@ func (c *Client) Call(soapAction string, header, body interface{}) []byte {
 	request.Header.Add("Content-Type", "text/xml; charset=\"utf-8\"")
 	request.Header.Add("SOAPAction", soapAction)
 
-	response, _ := c.client.Do(request)
-	defer response.Body.Close()
+	httpResponse, _ := c.client.Do(request)
+	defer httpResponse.Body.Close()
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
-	return buf.Bytes()
+	buf.ReadFrom(httpResponse.Body)
+    res := &soapResponse{}
+    err = xml.Unmarshal(buf.Bytes(), &res)
+    if err != nil {
+        log.Fatal("Can't unmarshal soap response " + err.Error())
+    }
+
+    return res
 }
 
