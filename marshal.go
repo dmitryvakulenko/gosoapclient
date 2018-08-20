@@ -6,6 +6,7 @@ import (
 	"bytes"
 )
 
+// Пока не используется
 type Marshaler struct {
 	namespaces map[string]string
 	typeNamespace map[string]string

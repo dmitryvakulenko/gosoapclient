@@ -33,29 +33,15 @@ func NewClient(url string, poster Poster) Client {
 }
 
 func (c *Client) Call(soapAction string, header, body interface{}) []byte {
-	soap := NewSoapEnvelope()
-	//soap.Header = header
-	//soap.Body.Content = body
-
-	//namespaces := make(map[string]string)
-	//namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Header))
-	//namespaces = mergeNamespaces(namespaces, c.collectNamespaces(soap.Body.Content))
-
-	soap.Namespaces = append(soap.Namespaces, xml.Attr{Name: xml.Name{Local: "xmlns:addr"}, Value: "http://www.w3.org/2005/08/addressing"})
+	soap := newSoapEnvelope()
 
 	soap.Header = header
-	soap.Body.Value, _ = xml.MarshalIndent(body, "", "    ")
 
+	soap.Body.Value, _ = xml.MarshalIndent(body, "", "    ")
 	requestBody, err := xml.MarshalIndent(soap, "", "    ")
 	if err != nil {
 		panic(err)
 	}
-
-	//for alias, ns := range c.Marshaler.namespaces {
-	//	soap.Namespaces = append(soap.Namespaces, xml.Attr{
-	//		Name:  xml.Name{Local: "xmlns:" + alias},
-	//		Value: ns})
-	//}
 
 	requestBody = append([]byte(xml.Header), requestBody...)
 
