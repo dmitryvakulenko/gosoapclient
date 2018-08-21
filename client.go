@@ -73,3 +73,7 @@ func (c *Client) Call(soapAction string, header, body interface{}) *soapResponse
 
     return res
 }
+
+func (c *Client) GetLastCommunications() (string, string) {
+    return c.lastRequest, c.lastResponse
+}
