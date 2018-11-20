@@ -36,11 +36,16 @@ func NewClient(url string, poster Poster) *Client {
 }
 
 func (c *Client) Call(soapAction string, header, body interface{}) *soapResponse {
+	var err error
     soap := newSoapEnvelope()
-
     soap.Header = header
 
-    soap.Body.Value, _ = xml.MarshalIndent(body, "", "    ")
+    soap.Body.Value, err = xml.MarshalIndent(body, "", "    ")
+	if err != nil {
+		panic("Error marshalling request body " + err.Error())
+		return nilResponse()
+	}
+
     requestBody, err := xml.MarshalIndent(soap, "", "    ")
     if err != nil {
         return nilResponse()
