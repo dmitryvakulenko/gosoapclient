@@ -43,12 +43,11 @@ func (c *Client) Call(soapAction string, header, body interface{}) *soapResponse
     soap.Body.Value, err = xml.MarshalIndent(body, "", "    ")
 	if err != nil {
 		panic("Error marshalling request body " + err.Error())
-		return nilResponse()
 	}
 
     requestBody, err := xml.MarshalIndent(soap, "", "    ")
     if err != nil {
-        return nilResponse()
+		panic("Error marshalling request " + err.Error())
     }
 
     requestBody = append([]byte(xml.Header), requestBody...)
