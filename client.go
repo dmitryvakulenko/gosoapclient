@@ -13,6 +13,7 @@ type Poster interface {
     Post(url string, contentType string, body io.Reader) (resp *http.Response, err error)
 }
 
+// TODO: some kind of connection keeping or reconnect
 type Client struct {
     url          string
     poster       Poster
