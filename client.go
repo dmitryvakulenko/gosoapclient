@@ -78,10 +78,7 @@ func (c *Client) Call(soapAction string, header, body interface{}) (*soapRespons
 
     fault := &Fault{}
     err = xml.Unmarshal(res.Body.Response, fault)
-	if err != nil {
-		log.Printf("Error fault checking %q", err)
-		return nilResponse(), err
-	} else if fault.FaultCode != "" {
+	if err == nil && fault.FaultCode != "" {
 		return nilResponse(), fault
 	}
 
