@@ -1,12 +1,12 @@
 package gosoapclient
 
 import (
-    "io"
-    "net/http"
-    "encoding/xml"
-    "bytes"
-    "crypto/tls"
-    "log"
+	"bytes"
+	"crypto/tls"
+	"encoding/xml"
+	"io"
+	"log"
+	"net/http"
 )
 
 type Poster interface {
@@ -36,7 +36,7 @@ func NewClient(url string, poster Poster) *Client {
     }
 }
 
-func (c *Client) Call(soapAction string, header, body interface{}) *soapResponse {
+func (c *Client) Call(soapAction string, header, body interface{}) (*soapResponse, error) {
 	var err error
     soap := newSoapEnvelope()
     soap.Header = header
@@ -60,7 +60,7 @@ func (c *Client) Call(soapAction string, header, body interface{}) *soapResponse
     httpResponse, err := c.client.Do(request)
     if err != nil {
         log.Printf("Request error %q", err)
-        return nilResponse()
+        return nilResponse(), err
     }
     defer httpResponse.Body.Close()
 
@@ -73,10 +73,19 @@ func (c *Client) Call(soapAction string, header, body interface{}) *soapResponse
     err = xml.Unmarshal(buf.Bytes(), res)
     if err != nil {
         log.Printf("Can't unmarshal soap response %q", err)
-        return nilResponse()
+        return nilResponse(), err
     }
 
-    return res
+    fault := &Fault{}
+    err = xml.Unmarshal(res.Body.Response, fault)
+	if err != nil {
+		log.Printf("Error fault checking %q", err)
+		return nilResponse(), err
+	} else if fault.FaultCode != "" {
+		return nilResponse(), fault
+	}
+
+    return res, nil
 }
 
 func (c *Client) GetLastCommunications() (string, string) {
