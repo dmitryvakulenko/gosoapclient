@@ -4,9 +4,9 @@ import "encoding/xml"
 
 func newSoapEnvelope() *envelope {
 	return &envelope{
-	    SoapNamespace: "http://schemas.xmlsoap.org/soap/envelope/",
-        Namespaces: []xml.Attr{
-            {Name: xml.Name{Local: "xmlns:addr"}, Value: "http://www.w3.org/2005/08/addressing"}}}
+		SoapNamespace: "http://schemas.xmlsoap.org/soap/envelope/",
+		Namespaces: []xml.Attr{
+			{Name: xml.Name{Local: "xmlns:addr"}, Value: "http://www.w3.org/2005/08/addressing"}}}
 }
 
 type envelope struct {
@@ -22,9 +22,13 @@ type content struct {
 }
 
 type soapResponse struct {
-	XMLName   string   `xml:"Envelope"`
-	SessionId string   `xml:"Header>Session>SessionId"`
-	Body      respBody `xml:"Body"`
+	XMLName string      `xml:"Envelope"`
+	Header  *headerBody `xml:"Header"`
+	Body    *respBody   `xml:"Body"`
+}
+
+type headerBody struct {
+	Response []byte `xml:",innerxml"`
 }
 
 type respBody struct {
@@ -32,5 +36,5 @@ type respBody struct {
 }
 
 func nilResponse() *soapResponse {
-    return &soapResponse{}
+	return &soapResponse{}
 }
