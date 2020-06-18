@@ -70,13 +70,13 @@ func (p *Marshaler) getElementName(val reflect.Value) string {
 }
 
 
-//func (c *Client) collectNamespaces(in interface{}) map[string]string {
+//func (soapClient *Client) collectNamespaces(in interface{}) map[string]string {
 //	inType := reflect.ValueOf(in)
 //	res := make(map[string]string)
 //
 //	inTypeName := inType.Type().Name()
-//	if ns, ok := c.typesNamespaces[inTypeName]; ok {
-//		nsAlias := c.namespacesAlias[ns]
+//	if ns, ok := soapClient.typesNamespaces[inTypeName]; ok {
+//		nsAlias := soapClient.namespacesAlias[ns]
 //		res[nsAlias] = ns
 //	}
 //
@@ -84,7 +84,7 @@ func (p *Marshaler) getElementName(val reflect.Value) string {
 //		fieldsNum := inType.NumField()
 //		for i := 0; i < fieldsNum; i++ {
 //			val := inType.Field(i)
-//			res = mergeNamespaces(res, c.collectNamespaces(val.Interface()))
+//			res = mergeNamespaces(res, soapClient.collectNamespaces(val.Interface()))
 //		}
 //	} else if inType.Kind() == reflect.Slice {
 //		val, ok := in.([]interface{})
@@ -92,11 +92,11 @@ func (p *Marshaler) getElementName(val reflect.Value) string {
 //			return res
 //		}
 //		for _, v := range val {
-//			res = mergeNamespaces(res, c.collectNamespaces(v))
+//			res = mergeNamespaces(res, soapClient.collectNamespaces(v))
 //		}
 //	} else if inType.Kind() == reflect.Ptr && !inType.IsNil() {
 //		ptr := inType.Elem().Interface()
-//		res = mergeNamespaces(res, c.collectNamespaces(ptr))
+//		res = mergeNamespaces(res, soapClient.collectNamespaces(ptr))
 //	}
 //
 //	return res

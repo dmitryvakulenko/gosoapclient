@@ -1,8 +1,5 @@
-<SOAP-ENV:Header xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-    <SOAP-ENV:Header>
-        <testElem soapAction="this is a soap action string"></testElem>
-    </SOAP-ENV:Header>
-    <SOAP-ENV:Body>
-        <Content></Content>
-    </SOAP-ENV:Body>
-</SOAP-ENV:Header>
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:addr="http://www.w3.org/2005/08/addressing">
+    <testElem soapAction="this is a soap action string"></testElem>
+    <SOAP-ENV:Body><emptyBody></emptyBody></SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
